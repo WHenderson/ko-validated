@@ -1,0 +1,29 @@
+{
+  "name": "ko-validation",
+  "description": "Knockout validation framework. Do one thing. Do it Well.",
+  "main": "dist/ko-validation.umd.js",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "knockout",
+    "validate",
+    "validation"
+  ],
+  "homepage": "https://github.com/WHenderson/ko-validation",
+  "authors": [
+    "WHenderson <whenderson.github@gmail.com>"
+  ],
+  "license": "Apache-2.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "coverage",
+    "test",
+    "tests"
+  ],
+  "version": "0.2.0-prerelease"
+}

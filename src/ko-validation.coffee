@@ -1,0 +1,2 @@
+applyKov = (ko) ->
+  true
