@@ -1,6 +1,6 @@
 {
   "name": "ko-validation",
-  "version": "1.1.1",
+  "version": "0.0.0-prerelease",
   "description": "Knockout validation framework. Do one thing. Do it Well.",
   "main": "index.js",
   "files": [
