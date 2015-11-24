@@ -41,7 +41,21 @@ pipeNode = gLazy()
 
 pipeBrowser = gLazy()
 .pipe(gUmd,{
-    templateName: 'amdWeb',
+    _templateName: 'amdWeb',
+    templateSource: '''
+      ;(function(root, factory) {
+        if (typeof define === 'function' && define.amd) {
+          define(['knockout'], function (ko) {
+            return factory()(ko);
+          });
+        } else {
+          root.ko = factory()(root.ko);
+        }
+      }(this, function (<%= param %>) {
+      <%= contents %>
+      return <%= exports %>;
+      }));
+      '''
     exports: (file) ->
       EXPORT
     namespace: (file) ->
@@ -53,7 +67,7 @@ pipeBrowser = gLazy()
 
 pipeUmd = gLazy()
 .pipe(gUmd,{
-    templateNamex: 'amdNodeWeb',
+    _templateName: 'amdNodeWeb',
     templateSource: '''
       ;(function(root, factory) {
         if (typeof define === 'function' && define.amd) {
@@ -69,7 +83,7 @@ pipeUmd = gLazy()
       <%= contents %>
       return <%= exports %>;
       }));
-    '''
+      '''
     exports: (file) ->
       EXPORT
     namespace: (file) ->
