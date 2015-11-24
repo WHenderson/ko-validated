@@ -1,8 +1,14 @@
 applyKov = (ko) ->
   ko.extenders.fallible = (target, options) ->
 
+    if options == false and target._setInfallible?
+      target._disposeFallible()
+      return target
+
     if ko.extenders.fallible.isFallible(target)
       return target
+
+    console?.assert?(options == true, 'fallible must be true or false')
 
     # contains the errors for target
     _errors = ko.observable({})
@@ -35,9 +41,11 @@ applyKov = (ko) ->
           if message?
             if typeof message == 'string'
               messages.push(message)
-            else
+            else if Array.isArray(message)
               for subMessage in message
                 addMessage(subMessage)
+            else
+              console?.assert?(false, 'invalid error message')
 
           return
 
@@ -94,6 +102,8 @@ applyKov = (ko) ->
             firstMessage = message
             return true
           else if message?
+            console?.assert?(Array.isArray(message), 'invalid error message')
+            
             for subMessage in message
               if findMessage(subMessage)
                 return true
@@ -113,6 +123,11 @@ applyKov = (ko) ->
         _errors(errors)
         return
     })
+
+    _target._disposeFallible() ->
+      _errors({})
+      delete target.error
+      delete target.errors
 
     return target
 

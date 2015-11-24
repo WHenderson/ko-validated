@@ -5,9 +5,19 @@ var o2 = ko.observable().extend({ fallible: true });
 
 o.errors.add(o2.errors);
 
-o.errors.add(ko.observable('alakazam!'));
+var error = o.errors.add(ko.observable('alakazam!'));
 o.errors.add('wooo');
 o.errors.add('wooot');
+
+console.log(o.errors());
+console.log(o.error());
+
+error.message('zoop');
+
+console.log(o.errors());
+console.log(o.error());
+
+error.dispose();
 
 console.log(o.errors());
 console.log(o.error());
