@@ -14,6 +14,7 @@ gCoffeeLint = require('gulp-coffeelint')
 gCoverageEnforcer = require("gulp-istanbul-enforcer");
 
 EXPORT = 'applyKov'
+EXPORT_APPLY = 'applyKov(ko)'
 NAMESPACE = 'ko'
 
 pipeCoffee = gLazy()
@@ -52,9 +53,22 @@ pipeBrowser = gLazy()
 
 pipeUmd = gLazy()
 .pipe(gUmd,{
-    templateName: 'amdNodeWeb',
-    templateSourcex: '''
-      TODO
+    templateNamex: 'amdNodeWeb',
+    templateSource: '''
+      ;(function(root, factory) {
+        if (typeof define === 'function' && define.amd) {
+          define(['knockout'], function (ko) {
+            return factory()(ko);
+          });
+        } else if (typeof exports === 'object') {
+          module.exports = factory();
+        } else {
+          root.ko = factory()(root.ko);
+        }
+      }(this, function() {
+      <%= contents %>
+      return <%= exports %>;
+      }));
     '''
     exports: (file) ->
       EXPORT

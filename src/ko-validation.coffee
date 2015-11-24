@@ -1,2 +1,2 @@
 applyKov = (ko) ->
-  true
+  ko
