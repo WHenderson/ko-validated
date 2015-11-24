@@ -11,6 +11,7 @@ o.errors.add('wooot');
 
 console.log(o.errors());
 console.log(o.error());
+o = o.extend({ required: true });
 
 error.message('zoop');
 
@@ -26,3 +27,8 @@ o2.error('dang!');
 
 console.log(o.errors());
 console.log(o.error());
+
+o('value!');
+console.log(o.errors());
+console.log(o.error());
+

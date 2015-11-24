@@ -103,7 +103,7 @@ applyKov = (ko) ->
             return true
           else if message?
             console?.assert?(Array.isArray(message), 'invalid error message')
-            
+
             for subMessage in message
               if findMessage(subMessage)
                 return true
@@ -124,15 +124,42 @@ applyKov = (ko) ->
         return
     })
 
-    _target._disposeFallible() ->
+    target._disposeFallible = () ->
       _errors({})
       delete target.error
       delete target.errors
+      return
 
     return target
 
   ko.extenders.fallible.isFallible = (target) ->
     return target.errors? and target.error?
 
+  ko.extenders.required = (target, options) ->
+    target = target.extend({ fallible: true })
+
+    if not ko.isObservable(options)
+      console?.assert?(typeof options == 'boolean', 'required must be boolean or an observable that resolves to a boolean')
+      options = ko.observable(options)
+
+    required = options
+
+    target.required = required
+
+    error = target.errors.add(ko.pureComputed(
+      () ->
+        if required()
+          value = target()
+
+          if not value? or /^\s*$/.test(value)
+            return 'is required'
+
+        return
+    ))
+
+    target._disposeRequired = () ->
+      error.dispose()
+
+    return target
 
   return ko
