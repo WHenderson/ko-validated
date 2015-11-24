@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+    <script src="../../dist/ko-validation.web.js"></script>
+</head>
+<body>
+
+<input id="test" data-bind="textInput: o, required: o.required, enable: true" value="">
+<div data-bind="text: o.error"></div>
+
+<script>
+    (function () {
+        var o = ko.observable('zing').extend({ fallible: true, required: true });
+        var vm = {
+            o: o
+        };
+        window.$vm = vm;
+        ko.applyBindings(vm);
+    })();
+</script>
+
+</body>
+</html>

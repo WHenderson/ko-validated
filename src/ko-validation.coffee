@@ -162,4 +162,27 @@ applyKov = (ko) ->
 
     return target
 
+  ko.bindingHandlers.required = {
+    update: (element, valueAccessor) ->
+      value = ko.utils.unwrapObservable(valueAccessor())
+      if not value and element.required
+        element.removeAttribute('required')
+      else
+        element.required = true
+  }
+
+  ko.bindingHandlers.validation = {
+    init: (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) ->
+      return ko.bindingHandlers.attr.update(
+        element,
+        () ->
+          {
+            required: valueAccessor().required
+          }
+        allBindingsAccessor,
+        viewModel,
+        bindingContext
+      )
+  }
+
   return ko

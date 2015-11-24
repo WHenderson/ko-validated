@@ -49,6 +49,7 @@
     "knockout": "^3.4.0",
     "lazypipe": "^1.0.1",
     "lodash": "^3.10.0",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "phantomjs": "^1.9.18"
   }
 }
