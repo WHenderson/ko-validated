@@ -21,9 +21,10 @@
       tagName = element.name.toUpperCase()
       if tagName == 'INPUT'
         value = ko.utils.unwrapObservable(valueAccessor())
-        if not value and element.pattern
-          element.removeAttribute('pattern')
+        if not value?
+          if element.hasAttribute('pattern')
+            element.removeAttribute('pattern')
         else
-          element.setAttribute('pattern', value.source)
+          element.setAttribute('pattern', if typeof value == 'string' then value else value.source)
       return
   }

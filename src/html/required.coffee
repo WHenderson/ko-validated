@@ -20,8 +20,9 @@
       tagName = element.name.toUpperCase()
       if tagName == 'INPUT' or tagName == 'SELECT' or tagName == 'TEXTAREA'
         value = ko.utils.unwrapObservable(valueAccessor())
-        if not value and element.required
-          element.removeAttribute('required')
+        if not value
+          if element.required
+            element.removeAttribute('required')
         else
           element.required = true
       return
