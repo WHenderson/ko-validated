@@ -113,9 +113,17 @@ gulpClean = () ->
 gulpBuild = () ->
   gulp
   .src([
-      'src/ko-validation.coffee'
+      'src/index-prefix.coffee'
+      'src/html/index-prefix.coffee'
+      'src/html/required.coffee'
+      'src/html/pattern.coffee'
+      'src/html/minlength-maxlength.coffee'
+      'src/html/min-max-step.coffee'
+      'src/html/multiple.coffee'
+      'src/html/index-suffix.coffee'
+      'src/index-suffix.coffee'
     ])
-  #.pipe(gConcat('ko-validation.coffee', { newLine: '\r\n' }))
+  .pipe(gConcat('ko-validation.coffee', { newLine: '\r\n' }))
   .pipe(gCoffeeLint())
   .pipe(gCoffeeLint.reporter())
   .pipe(gMirror(

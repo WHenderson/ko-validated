@@ -1,9 +1,15 @@
-applyKov = (ko) ->
   ko.extenders.fallible = (target, options) ->
 
-    if options == false and target._setInfallible?
+    if options == false and target._disposeFallible?
       target._disposeFallible()
       return target
+
+    if typeof options == 'object' and options.bindHtml?
+      bindHtml = options.bindHtml
+
+    bindHtml ?= ko.extenders.fallible.options.bindHtml
+    if not ko.isObservable(bindHtml)
+      bindHtml = ko.observable(bindHtml)
 
     if ko.extenders.fallible.isFallible(target)
       return target
@@ -130,45 +136,15 @@ applyKov = (ko) ->
       delete target.errors
       return
 
+    target.bindHtml = bindHtml
+
     return target
 
   ko.extenders.fallible.isFallible = (target) ->
     return target.errors? and target.error?
 
-  ko.extenders.required = (target, options) ->
-    target = target.extend({ fallible: true })
-
-    if not ko.isObservable(options)
-      console?.assert?(typeof options == 'boolean', 'required must be boolean or an observable that resolves to a boolean')
-      options = ko.observable(options)
-
-    required = options
-
-    target.required = required
-
-    error = target.errors.add(ko.pureComputed(
-      () ->
-        if required()
-          value = target()
-
-          if not value? or /^\s*$/.test(value)
-            return 'is required'
-
-        return
-    ))
-
-    target._disposeRequired = () ->
-      error.dispose()
-
-    return target
-
-  ko.bindingHandlers.required = {
-    update: (element, valueAccessor) ->
-      value = ko.utils.unwrapObservable(valueAccessor())
-      if not value and element.required
-        element.removeAttribute('required')
-      else
-        element.required = true
+  ko.extenders.fallible.options = {
+    bindHtml: true
   }
 
   ko.bindingHandlers.validation = {
@@ -185,4 +161,3 @@ applyKov = (ko) ->
       )
   }
 
-  return ko
