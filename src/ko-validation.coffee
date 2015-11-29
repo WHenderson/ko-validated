@@ -18,7 +18,6 @@ applyKov = (ko) ->
       for own key, value in ko.extenders.fallible.options
         finalOptions[key] = options[key] ? value
 
-
     # contains the errors for target
     _errors = ko.observable({})
 
@@ -160,3 +159,45 @@ applyKov = (ko) ->
 
   # Default options for fallible
   ko.extenders.fallible.options = {}
+
+  ko.pureErrors = applyKov.pureErrors
+
+  return ko
+
+applyKov.pureErrors = (read, owner) ->
+  subscription = undefined
+
+  computed = ko.pureComputed(
+    () ->
+      errors = []
+      addError = (target, message) ->
+        if target?
+          target = target.extend({ fallible: true })
+          errors.push(target.errors.add(message))
+        else
+          errors.push({
+            message: message
+            dispose: () ->
+            isDisposed: () -> true
+          })
+
+        return
+
+      dispose = () ->
+        for error in errors
+          error.dispose()
+        errors = []
+        subscription.dispose()
+        subscription = undefined
+        return
+
+      try
+        read.call(owner)
+      finally
+        subscription = computed.subscribe(dispose, null, 'asleep')
+
+      return errors
+  )
+
+  return computed
+
