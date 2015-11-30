@@ -9,15 +9,6 @@ applyKov = (ko) ->
     if ko.extenders.fallible.isFallible(target)
       return target
 
-    # Defaults
-    if typeof options == true
-      options = {}
-
-    finalOptions = {}
-    do ->
-      for own key, value in ko.extenders.fallible.options
-        finalOptions[key] = options[key] ? value
-
     # contains the errors for target
     _errors = ko.observable({})
 
@@ -40,6 +31,27 @@ applyKov = (ko) ->
     # Returns true iff the specified error exists
     _errorExists = (id) ->
       _hasOwnProp.call(_errors(), id)
+
+    _errorMetaData = (errors, id, message) ->
+      if id?
+        metaData = {
+          message: message
+          target: target
+          dispose: () ->
+            _removeError(id)
+          isDisposed: () ->
+            not _errorExists(id)
+        }
+        errors[id] = message
+      else
+        metaData = {
+          message: message
+          target: target
+          dispose: () -> undefined
+          isDisposed: () -> true
+        }
+
+      return metaData
 
     # A list of all errors
     target.errors = ko.pureComputed({
@@ -74,18 +86,13 @@ applyKov = (ko) ->
 
     # Add an individual error
     target.errors.add = (message) ->
-      id = ++_idCounter
-      _errors()[id] = message
+      if message?
+        id = ++_idCounter
+
+      metaData = _errorMetaData(_errors(), id, message)
       _errors.valueHasMutated()
 
-      return {
-        message: message
-        target: target
-        dispose: () ->
-          _removeError(id)
-        isDisposed: () ->
-          _errorExists(id)
-      }
+      return metaData
 
     # Get the first error
     target.errors.get = () ->
@@ -117,12 +124,14 @@ applyKov = (ko) ->
       return undefined
 
     # Set a single error, clearing other errors
-    target.errors.set = (messages) ->
-      errors = {}
+    target.errors.set = (message) ->
       if message?
-        errors[++_idCounter] = message
+        id = ++_idCounter
+
+      errors = {}
+      metaData = _errorMetaData(errors, id, message)
       _errors(errors)
-      return
+      return metaData
 
     target.errors.has = () ->
       return target.error()?
@@ -149,6 +158,7 @@ applyKov = (ko) ->
       delete target.error
       delete target.errors
       delete target.hasError
+      delete target._disposeFallible
       return
 
     return target
@@ -156,9 +166,6 @@ applyKov = (ko) ->
   # Determine if item is fallible
   ko.extenders.fallible.isFallible = (target) ->
     return target.errors? and target.error?
-
-  # Default options for fallible
-  ko.extenders.fallible.options = {}
 
   ko.pureErrors = applyKov.pureErrors
 
@@ -177,7 +184,7 @@ applyKov.pureErrors = (read, owner) ->
         else
           errors.push({
             message: message
-            dispose: () ->
+            dispose: () -> undefined
             isDisposed: () -> true
           })
 
@@ -200,4 +207,3 @@ applyKov.pureErrors = (read, owner) ->
   )
 
   return computed
-

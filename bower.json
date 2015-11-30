@@ -25,5 +25,8 @@
     "test",
     "tests"
   ],
-  "version": "0.2.0-prerelease"
+  "version": "0.2.0-prerelease",
+  "devDependencies": {
+    "is-an": "~0.7.0"
+  }
 }

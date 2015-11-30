@@ -12,92 +12,71 @@ gRename = require('gulp-rename')
 gUglify = require('gulp-uglify')
 gCoffeeLint = require('gulp-coffeelint')
 gCoverageEnforcer = require("gulp-istanbul-enforcer");
+gAddSrc = require('gulp-add-src')
+gData = require('gulp-data')
 
 EXPORT = 'applyKov'
-EXPORT_APPLY = 'applyKov(ko)'
 NAMESPACE = 'ko'
 
 pipeCoffee = gLazy()
 .pipe(gUmd, {
-    templateSource: '''
+  templateSource: '''
   <%= contents %>
   module.exports = <%= exports %>
   '''
-    exports: (file) ->
-      EXPORT
-  })
+  exports: (file) ->
+    file.data.exports
+  dependencies: (file) ->
+    file.data.dependencies
+})
 
 pipeNode = gLazy()
 .pipe(gUmd,{
-    templateName: 'node',
-    exports: (file) ->
-      EXPORT
-    namespace: (file) ->
-      NAMESPACE
-  })
+  templateName: 'node',
+  exports: (file) ->
+    file.data.exports
+  namespace: (file) ->
+    file.data.namespace
+  dependencies: (file) ->
+    file.data.dependencies
+})
 .pipe(gRename, {
-    suffix: '.node'
-  })
+  suffix: '.node'
+})
 
 pipeBrowser = gLazy()
 .pipe(gUmd,{
-    _templateName: 'amdWeb',
-    templateSource: '''
-      ;(function(root, factory) {
-        if (typeof define === 'function' && define.amd) {
-          define(['knockout'], function (ko) {
-            return factory()(ko);
-          });
-        } else {
-          root.ko = factory()(root.ko);
-        }
-      }(this, function (<%= param %>) {
-      <%= contents %>
-      return <%= exports %>;
-      }));
-      '''
-    exports: (file) ->
-      EXPORT
-    namespace: (file) ->
-      NAMESPACE
-  })
+  templateName: 'amdWeb',
+  exports: (file) ->
+    file.data.exports
+  namespace: (file) ->
+    file.data.namespace
+  dependencies: (file) ->
+    file.data.dependencies
+})
 .pipe(gRename, {
-    suffix: '.web'
-  })
+  suffix: '.web'
+})
 
 pipeUmd = gLazy()
 .pipe(gUmd,{
-    _templateName: 'amdNodeWeb',
-    templateSource: '''
-      ;(function(root, factory) {
-        if (typeof define === 'function' && define.amd) {
-          define(['knockout'], function (ko) {
-            return factory()(ko);
-          });
-        } else if (typeof exports === 'object') {
-          module.exports = factory();
-        } else {
-          root.ko = factory()(root.ko);
-        }
-      }(this, function() {
-      <%= contents %>
-      return <%= exports %>;
-      }));
-      '''
-    exports: (file) ->
-      EXPORT
-    namespace: (file) ->
-      NAMESPACE
-  })
+  templateName: 'amdNodeWeb',
+  exports: (file) ->
+    file.data.exports
+  namespace: (file) ->
+    file.data.namespace
+  dependencies: (file) ->
+    file.data.dependencies
+})
 .pipe(gRename, {
-    suffix: '.umd'
-  })
+  suffix: '.umd'
+})
 
 createUglifyPipe = (pipe) ->
   pipe
   .pipe(gUglify, {
-      preserveComments: 'some'
-    })
+    preserveComments: 'some'
+  })
   .pipe(
     gRename,
     (path) ->
@@ -111,39 +90,59 @@ gulpClean = () ->
   .pipe(gClean())
 
 gulpBuild = () ->
+
+  platforms = gLazy()
+  .pipe(() -> gSourceMaps.init())
+  .pipe(() -> gCoffee({ bare: true }))
+  .pipe(() -> gMirror(
+    pipeNode()
+    pipeBrowser()
+    pipeUmd()
+    createUglifyPipe(pipeBrowser)()
+    createUglifyPipe(pipeUmd)()
+  ))
+  .pipe(() -> gSourceMaps.write())
+
   gulp
   .src([
-      'src/index-prefix.coffee'
-      'src/html/index-prefix.coffee'
-      'src/html/required.coffee'
-      'src/html/pattern.coffee'
-      'src/html/minlength-maxlength.coffee'
-      'src/html/min-max-step.coffee'
-      'src/html/multiple.coffee'
-      'src/html/index-suffix.coffee'
-      'src/index-suffix.coffee'
-    ])
+    'src/ko-validation.coffee'
+  ])
   .pipe(gConcat('ko-validation.coffee', { newLine: '\r\n' }))
+  .pipe(gData((file) ->
+    {
+      exports: 'applyKov'
+      namespace: 'applyKov'
+      dependencies: []
+    }
+  ))
   .pipe(gCoffeeLint())
   .pipe(gCoffeeLint.reporter())
   .pipe(gMirror(
-      pipeCoffee(),
-      (
-        gLazy()
-        .pipe(gSourceMaps.init)
-        #.pipe(gConcat, 'ko-validation.coffee')
-        .pipe(gCoffee, { bare: true })
-        .pipe(
-          gMirror,
-          pipeNode(),
-          pipeBrowser(),
-          pipeUmd(),
-          createUglifyPipe(pipeBrowser)(),
-          createUglifyPipe(pipeUmd)()
-        )
-        .pipe(gSourceMaps.write)
-      )()
-    ))
+    pipeCoffee(),
+    platforms()
+    (
+      gLazy()
+      .pipe(() -> gAddSrc([
+        'src/apply.coffee'
+      ]))
+      .pipe(() -> gConcat('ko-validation.apply.coffee', { newLine: '\r\n' }))
+      .pipe(() -> gData((file) ->
+        {
+          exports: 'ko'
+          namespace: 'ko'
+          dependencies: [{
+            name: 'knockout'
+            global: 'ko'
+            param: 'ko'
+          }]
+        }
+      ))
+      .pipe(() -> gMirror(
+        pipeCoffee()
+        platforms()
+      ))
+    )()
+  ))
   .pipe(gulp.dest('dist'))
 
 gulpTestCoverage = () ->
@@ -157,24 +156,24 @@ gulpTestCoverage = () ->
     }
   )
   .pipe(gMocha({
-      debugBrk: false
-      r: 'test/coverage-setup.js'
-      R: 'spec'
-      u: 'tdd'
-      istanbul: {
+    debugBrk: false
+    r: 'test/coverage-setup.js'
+    R: 'spec'
+    u: 'tdd'
+    istanbul: {
 
-      }
-    }))
+    }
+  }))
   .pipe(gCoverageEnforcer({
-      thresholds : {
-        statements : 100,
-        branches : 100,
-        lines : 100,
-        functions : 100
-      },
-      coverageDirectory : 'coverage',
-      rootDirectory : ''
-    }))
+    thresholds : {
+      statements : 100,
+      branches : 100,
+      lines : 100,
+      functions : 100
+    },
+    coverageDirectory : 'coverage',
+    rootDirectory : ''
+  }))
 
 gulpTestExamples = () ->
   gulp
@@ -187,12 +186,12 @@ gulpTestExamples = () ->
     }
   )
   .pipe(gMocha({
-      debugBrk: false
-      r: 'test/examples-setup.js'
-      R: 'spec'
-      u: 'tdd'
-      istanbul: false
-    }))
+    debugBrk: false
+    r: 'test/examples-setup.js'
+    R: 'spec'
+    u: 'tdd'
+    istanbul: false
+  }))
 
 gulp.task('discrete-clean', () ->
   gulpClean()

@@ -4,6 +4,7 @@ coverage
 # Dependency directory
 # https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
 node_modules
+bower_components
 
 # built libs - need to include for bower. yuk!
 dist
