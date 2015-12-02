@@ -1,7 +1,7 @@
 {
-  "name": "ko-validation",
+  "name": "ko-validation-base",
   "description": "Knockout validation framework. Do one thing. Do it Well.",
-  "main": "dist/ko-validation.umd.js",
+  "main": "dist/ko-validation-base.umd.js",
   "moduleType": [
     "amd",
     "globals",
@@ -12,7 +12,7 @@
     "validate",
     "validation"
   ],
-  "homepage": "https://github.com/WHenderson/ko-validation",
+  "homepage": "https://github.com/WHenderson/ko-validation-base",
   "authors": [
     "WHenderson <whenderson.github@gmail.com>"
   ],

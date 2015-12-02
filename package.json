@@ -1,5 +1,5 @@
 {
-  "name": "ko-validation",
+  "name": "ko-validation-base",
   "version": "0.0.0-prerelease",
   "description": "Knockout validation framework. Do one thing. Do it Well.",
   "main": "index.js",
@@ -18,13 +18,13 @@
     "validation"
   ],
   "bugs": {
-    "url": "https://github.com/WHenderson/ko-validation/issues"
+    "url": "https://github.com/WHenderson/ko-validation-base/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WHenderson/ko-validation.git"
+    "url": "git+https://github.com/WHenderson/ko-validation-base.git"
   },
-  "homepage": "https://github.com/WHenderson/ko-validation#readme",
+  "homepage": "https://github.com/WHenderson/ko-validation-base#readme",
   "author": "WHenderson <whenderson.github@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {

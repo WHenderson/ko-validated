@@ -105,9 +105,9 @@ gulpBuild = () ->
 
   gulp
   .src([
-    'src/ko-validation.coffee'
+    'src/ko-validation-base.coffee'
   ])
-  .pipe(gConcat('ko-validation.coffee', { newLine: '\r\n' }))
+  .pipe(gConcat('ko-validation-base.coffee', { newLine: '\r\n' }))
   .pipe(gData((file) ->
     {
       exports: 'applyKov'
@@ -125,7 +125,7 @@ gulpBuild = () ->
       .pipe(() -> gAddSrc([
         'src/apply.coffee'
       ]))
-      .pipe(() -> gConcat('ko-validation.apply.coffee', { newLine: '\r\n' }))
+      .pipe(() -> gConcat('ko-validation-base.apply.coffee', { newLine: '\r\n' }))
       .pipe(() -> gData((file) ->
         {
           exports: 'ko'
@@ -247,12 +247,12 @@ gulp.task('dist-git', ['dist-version'], (cb) ->
   cfgNpm = require('./package.json')
 
   exec('git add bower.json')
-  exec('git add -f dist/ko-validation.coffee')
-  exec('git add -f dist/ko-validation.node.js')
-  exec('git add -f dist/ko-validation.umd.js')
-  exec('git add -f dist/ko-validation.umd.min.js')
-  exec('git add -f dist/ko-validation.web.js')
-  exec('git add -f dist/ko-validation.web.min.js')
+  exec('git add -f dist/ko-validation-base.coffee')
+  exec('git add -f dist/ko-validation-base.node.js')
+  exec('git add -f dist/ko-validation-base.umd.js')
+  exec('git add -f dist/ko-validation-base.umd.min.js')
+  exec('git add -f dist/ko-validation-base.web.js')
+  exec('git add -f dist/ko-validation-base.web.min.js')
   exec('git checkout head')
   exec("git commit -m \"Version #{cfgNpm.version} for distribution\"")
   exec("git tag -a v#{cfgNpm.version} -m \"Add tag v#{cfgNpm.version}\"")
