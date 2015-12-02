@@ -167,43 +167,42 @@ applyKov = (ko) ->
   ko.extenders.fallible.isFallible = (target) ->
     return target.errors? and target.error?
 
-  ko.pureErrors = applyKov.pureErrors
+  ko.pureErrors = (read, owner) ->
+    subscription = undefined
+
+    computed = ko.pureComputed(
+      () ->
+        errors = []
+        addError = (target, message) ->
+          if target?
+            target = target.extend({ fallible: true })
+            errors.push(target.errors.add(message))
+          else
+            errors.push({
+              message: message
+              dispose: () -> undefined
+              isDisposed: () -> true
+            })
+
+          return
+
+        dispose = () ->
+          for error in errors
+            error.dispose()
+          errors = []
+          subscription.dispose()
+          subscription = undefined
+          return
+
+        try
+          read.call(owner, addError)
+        finally
+          subscription = computed.subscribe(dispose, null, 'asleep')
+
+        return errors
+    )
+
+    return computed
 
   return ko
 
-applyKov.pureErrors = (read, owner) ->
-  subscription = undefined
-
-  computed = ko.pureComputed(
-    () ->
-      errors = []
-      addError = (target, message) ->
-        if target?
-          target = target.extend({ fallible: true })
-          errors.push(target.errors.add(message))
-        else
-          errors.push({
-            message: message
-            dispose: () -> undefined
-            isDisposed: () -> true
-          })
-
-        return
-
-      dispose = () ->
-        for error in errors
-          error.dispose()
-        errors = []
-        subscription.dispose()
-        subscription = undefined
-        return
-
-      try
-        read.call(owner)
-      finally
-        subscription = computed.subscribe(dispose, null, 'asleep')
-
-      return errors
-  )
-
-  return computed

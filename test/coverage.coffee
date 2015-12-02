@@ -138,4 +138,63 @@ suite('coverage', () ->
         assert.equal(val, props[key])
     )
   )
+
+  suite('ko.pureErrors', () ->
+    test('standard', () ->
+      vm = {
+        a: ko.observable(1).extend({ fallible: true })
+        b: ko.observable(2).extend({ fallible: true })
+        c: ko.observable(3).extend({ fallible: true })
+      }
+
+      vm.errors = ko.pureErrors(
+        (addError) ->
+          if not vm.a()?
+            addError(vm.a, "a must have a value")
+
+          if not vm.b()?
+            addError(vm.b, "a must have a value")
+
+          if not vm.c()?
+            addError(vm.c, "a must have a value")
+
+          if vm.a() % 2 != 1
+            addError(vm.a, "a must be odd")
+
+          if vm.b() == vm.c()
+            addError(vm.c, "b and c must not be equal")
+
+          return
+      )
+
+      # convert comprehensive error information into a simplified list for testing
+      vm.simpleErrors = ko.computed(() ->
+        for error in vm.errors()
+          error.message
+      )
+
+      assert.deepEqual(vm.simpleErrors(), [])
+
+      vm.a(null)
+
+      assert.deepEqual(vm.simpleErrors(), [
+        'a must have a value'
+        'a must be odd'
+      ])
+
+      assert.equal(vm.a.error(), 'a must have a value')
+
+      vm.c(vm.b())
+
+      assert.deepEqual(vm.simpleErrors(), [
+        'a must have a value'
+        'a must be odd'
+        'b and c must not be equal'
+      ])
+
+      assert.equal(vm.a.error(), 'a must have a value')
+      assert.equal(vm.b.error(), undefined)
+      assert.equal(vm.c.error(), 'b and c must not be equal')
+    )
+  )
 )
