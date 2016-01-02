@@ -1,4 +1,4 @@
-var ko = require('../index')(require('knockout'));
+var ko = require('../index');
 
 var o = ko.observable().extend({ fallible: true });
 var o2 = ko.observable().extend({ fallible: true });
