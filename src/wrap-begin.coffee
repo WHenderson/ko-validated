@@ -1,1 +1,2 @@
 applyKov = (ko) ->
+  ko.validated = {}
