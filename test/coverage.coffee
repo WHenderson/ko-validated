@@ -4,8 +4,13 @@ suite('coverage', () ->
   ko = undefined
   setup(() ->
     #applyKov = require('../dist/ko-validated.coffee')
-    applyKov = require('../index')
-    ko = applyKov(require('knockout'))
+    ko = require('knockout')
+
+    # Use compiled javascript for debugging
+    if typeof v8debug != 'object'
+      require('../dist/ko-validated.applied.coffee')
+    else
+      require('../index')
   )
 
   suite('dummy', () ->

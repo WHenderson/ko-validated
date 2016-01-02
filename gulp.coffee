@@ -15,12 +15,15 @@ gCoverageEnforcer = require("gulp-istanbul-enforcer");
 gAddSrc = require('gulp-add-src')
 gData = require('gulp-data')
 
-EXPORT = 'applyKov'
-NAMESPACE = 'ko'
-
 pipeCoffee = gLazy()
 .pipe(gUmd, {
   templateSource: '''
+  <%
+    for (var i = 0; i != dependencies.length; ++i) {
+      %><%= dependencies[i].param %> = require('<%= dependencies[i].cjs || dependencies[i].name %>')
+  <%
+    }
+  %>
   <%= contents %>
   module.exports = <%= exports %>
   '''
@@ -101,7 +104,7 @@ gulpBuild = () ->
     createUglifyPipe(pipeBrowser)()
     createUglifyPipe(pipeUmd)()
   ))
-  #.pipe(() -> gSourceMaps.write())
+  .pipe(() -> gSourceMaps.write())
 
   gulp
   .src([
@@ -112,7 +115,7 @@ gulpBuild = () ->
     'src/core/errors.coffee'
     'src/wrap-end.coffee'
   ])
-  .pipe(gConcat('ko-validated.coffee', { newLine: '\r\n' }))
+  .pipe(gConcat('ko-validated.apply.coffee', { newLine: '\r\n' }))
   .pipe(gData((file) ->
     {
       exports: 'applyKov'
@@ -127,10 +130,10 @@ gulpBuild = () ->
     platforms()
     (
       gLazy()
-      .pipe(() -> gAddSrc([
+      .pipe(() -> gAddSrc.append([
         'src/apply.coffee'
       ]))
-      .pipe(() -> gConcat('ko-validated.apply.coffee', { newLine: '\r\n' }))
+      .pipe(() -> gConcat('ko-validated.applied.coffee', { newLine: '\r\n' }))
       .pipe(() -> gData((file) ->
         {
           exports: 'ko'
@@ -252,12 +255,7 @@ gulp.task('dist-git', ['dist-version'], (cb) ->
   cfgNpm = require('./package.json')
 
   exec('git add bower.json')
-  exec('git add -f dist/ko-validated.coffee')
-  exec('git add -f dist/ko-validated.node.js')
-  exec('git add -f dist/ko-validated.umd.js')
-  exec('git add -f dist/ko-validated.umd.min.js')
-  exec('git add -f dist/ko-validated.web.js')
-  exec('git add -f dist/ko-validated.web.min.js')
+  exec('git add -f dist/*.*')
   exec('git checkout head')
   exec("git commit -m \"Version #{cfgNpm.version} for distribution\"")
   exec("git tag -a v#{cfgNpm.version} -m \"Add tag v#{cfgNpm.version}\"")

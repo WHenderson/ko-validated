@@ -1,1 +1,1 @@
-module.exports = require('./dist/ko-validated.node.js');
+module.exports = require('./dist/ko-validated.applied.node.js');
