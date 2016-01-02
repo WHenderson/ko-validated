@@ -1,6 +1,6 @@
 {
   "name": "ko-validated",
-  "version": "0.0.0-prerelease",
+  "version": "0.1.0-prerelease",
   "description": "Knockout validation framework",
   "main": "index.js",
   "files": [
