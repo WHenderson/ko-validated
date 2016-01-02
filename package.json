@@ -54,6 +54,7 @@
     "lodash": "^3.10.0",
     "mocha": "^2.2.5",
     "moment": "^2.10.6",
-    "phantomjs": "^1.9.18"
+    "phantomjs": "^1.9.18",
+    "ko-typed": "^0.7.0"
   }
 }

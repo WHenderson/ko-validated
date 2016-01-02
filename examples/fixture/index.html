@@ -3,13 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+    <script src="//knockoutjs.com/downloads/knockout-3.4.0.debug.js"></script>
     <script src="../../dist/ko-validation-base.web.js"></script>
 </head>
 <body>
 
 <input id="test" data-bind="textInput: o, required: o.required, enable: true" value="" checked>
 <div data-bind="text: o.error"></div>
+
+<script>
+
+    var getDependencies = (function () {
+        var symState = (function () {
+            var c = ko.computed(function () { });
+            return Object.getOwnPropertySymbols(c)[0];
+        })();
+
+        var depKey = (function () {
+            var c = ko.computed(function () { });
+            for (var key in c[symState]) {
+                if (!{}.hasOwnProperty.call(c, key))
+                    continue;
+
+                if (typeof c[symState][key] == 'object')
+                    return key;
+            }
+        })();
+
+        return (function (target) {
+           for (var key in target[symState][depKey]) {
+               if (!{}.hasOwnProperty.call(c, key))
+                   continue;
+
+           }
+        });
+    });
+
+    o = ko.observable('o');
+    o2 = ko.computed({
+        read: function () {
+            return o();
+        },
+        deferEvaluation: true
+    });
+    c = ko.computed({
+        read: function () {
+            return o2();
+        },
+        deferEvaluation: true
+    })
+
+</script>
 
 <script>
     (function () {

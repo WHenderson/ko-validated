@@ -101,11 +101,15 @@ gulpBuild = () ->
     createUglifyPipe(pipeBrowser)()
     createUglifyPipe(pipeUmd)()
   ))
-  .pipe(() -> gSourceMaps.write())
+  #.pipe(() -> gSourceMaps.write())
 
   gulp
   .src([
-    'src/ko-validation-base.coffee'
+    'src/wrap-begin.coffee'
+    'src/disposable.coffee'
+    'src/fallible.coffee'
+    'src/errors.coffee'
+    'src/wrap-end.coffee'
   ])
   .pipe(gConcat('ko-validation-base.coffee', { newLine: '\r\n' }))
   .pipe(gData((file) ->
