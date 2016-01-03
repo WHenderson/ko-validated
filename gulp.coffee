@@ -112,7 +112,7 @@ gulpBuild = () ->
     'src/core/index.coffee'
     'src/core/disposable.coffee'
     'src/core/fallible.coffee'
-    'src/core/errors.coffee'
+    #'src/core/errors.coffee'
     'src/wrap-end.coffee'
   ])
   .pipe(gConcat('ko-validated.apply.coffee', { newLine: '\r\n' }))

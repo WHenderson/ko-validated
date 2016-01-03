@@ -1,10 +1,18 @@
-assert = require('chai').assert
+global.assert = require('chai').assert
+
+assert.isObservable = (ob, args...) ->
+  assert.isTrue(ko.isObservable(ob), args...)
+
+assert.isComputed = (ob, args...) ->
+  assert.isTrue(ko.isComputed(ob), args...)
+
+assert.isPureComputed = (ob, args...) ->
+  assert.isTrue(ko.isPureComputed(ob), args...)
 
 suite('coverage', () ->
   ko = undefined
   setup(() ->
-    #applyKov = require('../dist/ko-validated.coffee')
-    ko = require('knockout')
+    global.ko = require('knockout')
 
     # Use compiled javascript for debugging
     if typeof v8debug != 'object'
@@ -13,13 +21,9 @@ suite('coverage', () ->
       require('../index')
   )
 
-  suite('dummy', () ->
-    test('dummy', () ->
+  require('./coverage/interface')
 
-
-    )
-  )
-
+  ###
   suite('extend', () ->
     test('interface', () ->
       ob = ko.observable().extend({
@@ -231,5 +235,7 @@ suite('coverage', () ->
       console.log(vm.results.errors())
     )
   )
+
+###
 )
 

@@ -2,6 +2,11 @@
   getUniqueId = () ->
     ++_idCounter
 
+  hasAnyProp = (object) ->
+    for own key of object
+      return true
+    return false
+
   ko.extenders.fallible = (target, options) ->
     # Dispose?
     if options == false
@@ -20,11 +25,12 @@
     _hasOwnProp = ({}).hasOwnProperty
 
     # Removes the specified error, if it exists
+    # Returns True if a the trigger still needs to be pulled
     _removeError = (id, trigger) ->
       if typeof id == 'string'
-        if {}.hasOwnProperty(_named, id)
+        if _hasOwnProp.call(_named, id)
           name = id
-          id = _named[id]
+          id = _named[name]
           delete _named[name]
         else
           id = undefined
@@ -35,34 +41,44 @@
         if _hasOwnProp.call(errors, id)
           delete errors[id]
 
+          # remove associated name if not already done
+          if not name?
+            for own name, nameId of _named
+              if nameId == id
+                delete _named[name]
+                break
+
           if trigger != false
             _errors.valueHasMutated()
+            return false
+          else
+            return true
 
-      return
+      return false
 
     # Returns true iff the specified error exists
     _errorExists = (id) ->
       _hasOwnProp.call(_errors(), id)
 
     _registerError = (errors, message, name, trigger) ->
+      if typeof name == 'string' and _hasOwnProp.call(_named, name)
+        throw new Error('name already exists')
+
       if message?
         id = getUniqueId()
+
+        errors[id] = message
+
+        if typeof name == 'string'
+          _named[name] = id
 
         disposable = new Disposable(
           name,
           message
           target
-          () -> _removeError(name ? id)
+          () -> _removeError(id)
           () -> not _errorExists(id)
         )
-
-        if typeof name == 'string'
-          if {}.hasOwnProperty.call(_named, name)
-            _removeError(_named[name], false)
-
-          _named[name] = id
-
-        errors[id] = message
 
         if trigger != false
           _errors.valueHasMutated()
@@ -73,35 +89,50 @@
           target
         )
 
-        _removeError(name, trigger)
-
       return disposable
+
+    # get all the messages
+    getMessages = (message, collection = []) ->
+      recurse = (message) ->
+        if typeof message == 'function'
+          message = message()
+          recurse(message)
+        else if Array.isArray(message)
+          for subMessage in message
+            recurse(subMessage)
+        else if typeof message == 'string' or typeof message == 'object'
+          collection.push(message)
+
+        return
+
+      recurse(message)
+
+      return collection
+
+    # get a single message
+    getMessage = (message) ->
+      if typeof message == 'function'
+        message = message()
+        return getMessage(message)
+      else if Array.isArray(message)
+        for subMessage in message
+          subMessage = getMessage(subMessage)
+          if subMessage?
+            return subMessage
+      else if typeof message == 'string' or typeof message == 'object'
+        return message
+
+      return
 
     # A list of all errors
     target.errors = ko.pureComputed({
       read: () ->
-        messages = []
-
-        collectMessages = (message) ->
-          if not message?
-            return
-          else if typeof message == 'function'
-            message = message()
-            collectMessages(message)
-          else if Array.isArray(message)
-            for subMessage in message
-              collectMessages(subMessage)
-          else if typeof message == 'string' or typeof message == 'object'
-            messages.push(message)
-          else
-            console?.assert?(false, 'invalid error message')
-
-          return
+        collection = []
 
         for own id, message of _errors()
-          collectMessages(message)
+          getMessages(message, collection)
 
-        return messages
+        return collection
 
       write: (messages) ->
         target.errors.set(messages)
@@ -118,47 +149,37 @@
 
     # Set a single error, clearing other errors
     target.errors.set = (name, message) ->
+      errors = _errors()
+
       if arguments.length == 1
         message = name
         name = undefined
 
-      errors = {}
-      _named = {}
-      disposable = _registerError(errors, message, name, false)
-      _errors(errors)
+        if hasAnyProp(errors)
+          errors = {}
+          _named = {}
+          disposable = _registerError(errors, message, name, false)
+          _errors(errors)
+        else
+          disposable = _registerError(errors, message, name, true)
+      else
+        trigger = _removeError(name, false)
+        disposable = _registerError(errors, message, name, false)
+        if trigger or not disposable.isDisposed()
+          _errors.valueHasMutated()
+
       return disposable
 
     # Get the first error
     target.errors.get = (name) ->
-      firstMessage = undefined
-
-      findMessage = (message) ->
-        if not message?
-          return false
-        else if typeof message == 'function'
-          message = message()
-          if findMessage(message)
-            return true
-        else if Array.isArray(message)
-          for subMessage in message
-            if findMessage(subMessage)
-              return true
-        else if typeof message == 'string' or typeof message == 'object'
-          firstMessage = message
-          return true
-        else
-          console?.assert?(false, 'invalid error message')
-
-        return false
-
       if typeof name == 'string'
-        if {}.hasOwnProperty.call(_named, name)
-          if findMessage(_errors()[_named[name]])
-            return firstMessage
+        if _hasOwnProp.call(_named, name)
+          return getMessage(_errors()[_named[name]])
       else
         for own id, message of _errors()
-          if findMessage(message)
-            return firstMessage
+          message = getMessage(message)
+          if message?
+            return message
 
       return undefined
 
